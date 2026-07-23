@@ -12,6 +12,11 @@
 
 data "aws_caller_identity" "current" {}
 
+resource "random_integer" "execution_role_uniqueness" {
+  min = 1
+  max = 999
+}
+
 module "resource_names" {
   source  = "terraform.registry.launch.nttdata.com/module_library/resource_name/launch"
   version = "~> 2.0"
@@ -84,8 +89,8 @@ module "execution_role" {
   logical_product_service = var.logical_product_service
   environment             = var.class_env
   region                  = var.resource_names_map["execution_role"].region
-  environment_number      = var.instance_env
-  resource_number         = var.instance_resource
+  environment_number      = format("%03d", random_integer.execution_role_uniqueness.result)
+  resource_number         = format("%03d", random_integer.execution_role_uniqueness.result % 101)
 
   tags = local.tags
 
