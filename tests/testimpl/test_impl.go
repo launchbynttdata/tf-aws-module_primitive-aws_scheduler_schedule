@@ -1,10 +1,10 @@
 package testimpl
 
 import (
+	"context"
+	"strings"
 	"testing"
 	"time"
-	"strings"
-	"context"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -19,15 +19,15 @@ func TestComposableComplete(t *testing.T, ctx types.TestContext) {
 	t.Run("TestLambdaWasInvoked", func(t *testing.T) {
 		cloudwatchlogsClient := GetCloudWatchLogsClient(t)
 
-		logGroupName := terraform.Output(t, ctx.TerratestTerraformOptions(), "log_group_name")
-		expectedMessage := terraform.Output(t, ctx.TerratestTerraformOptions(), "expected_message")
+		logGroupName := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "log_group_name")
+		expectedMessage := terraform.OutputContext(t, context.Background(), ctx.TerratestTerraformOptions(), "expected_message")
 
 		// Query Cloudwatch Logs until we see the log line we're expecting, which indicates
 		// that the schedule triggered the Lambda function. We'll retry for up to 10 minutes.
 		var found bool
 		for i := 0; i < 60; i++ {
 			resp, err := cloudwatchlogsClient.FilterLogEvents(context.TODO(), &cloudwatchlogs.FilterLogEventsInput{
-				LogGroupName: aws.String(logGroupName),
+				LogGroupName:  aws.String(logGroupName),
 				FilterPattern: aws.String("Lambda function invoked"),
 			})
 			assert.NoErrorf(t, err, "Unable to get filtered log events, %v", err)
